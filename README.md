@@ -34,7 +34,7 @@ For encrypt value you should use openssl:
 
 1. Create priv/pub keys
 ```
-  openssl req -x509 -nodes -newkey rsa:4096 -keyout private.key -out public.cer -subj "/CN=PKCS#7"
+openssl req -x509 -nodes -newkey rsa:4096 -keyout private.key -out public.cer -subj "/CN=PKCS#7"
 ```
 
 2. Encrypt value:
@@ -70,9 +70,11 @@ curl -XPUT http://127.0.0.1:8500/v1/kv/services/secrets -d @secrets.json
 Where `privateKey` is `cat private.key | base64`.
 
 ### Register plugin jar and config file in marathon:
+Download plugin from https://github.com/servehub/marathon-secrets-plugin/releases/download/v1.0.0/marathon-secrets-plugin-assembly-1.0.0.jar
+
 ```
 scp plugin-conf.json root@server:/etc/marathon/
-scp marathon-secures-assembly-1.0.jar root@server:/etc/marathon/plugins/
+scp marathon-secrets-plugin-assembly-1.0.0.jar root@server:/etc/marathon/plugins/
 ```
 
 Restart marathon with arguments:
