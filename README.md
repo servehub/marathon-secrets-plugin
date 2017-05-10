@@ -82,7 +82,9 @@ Restart marathon with arguments:
 --plugin_dir=/etc/marathon/plugins --plugin_conf=/etc/marathon/plugin-conf.json
 ```
 
-## Build plugin jar
+## Development
+
+Build plugin jar
 
 ```
 sbt clean test assembly
