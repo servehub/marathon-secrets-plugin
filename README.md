@@ -9,19 +9,13 @@ Marathon plugin for receive secrets form some URL, decode and pass as ENV variab
 {
   "secrets": {
     "some.test.value": {
-      "value": {
-        "dev": "ENC:LS0tLS1CRUdJT...==",
-        "prod": "ENC:LS0tLS1CRUdJTiB...=="
-      },
+      "value": "ENC:LS0tLS1CRUdJT...==",
       "target": [
         { "app": "/group/app-v1.2.4" }
       ]
     },
     "open.secret.pass": {
-      "value": {
-        "dev": "open-value-dev",
-        "prod": "open-value-prod"
-      },
+      "value": "open-value-dev",
       "target": [
         { "app": "/group/" }
       ]
@@ -57,7 +51,6 @@ curl -XPUT http://127.0.0.1:8500/v1/kv/services/secrets -d @secrets.json
       "plugin": "mesosphere.marathon.plugin.task.RunSpecTaskProcessor",
       "implementation": "servehub.marathon.secures.plugin.SecureVarsPlugin",
       "configuration": {
-        "env": "dev",
         "varPrefix": "SECURE_",
         "privateKey": "LS0tLS1C...",
         "secretsUrl": "http://127.0.0.1:8500/v1/kv/services/secrets?raw=true"
