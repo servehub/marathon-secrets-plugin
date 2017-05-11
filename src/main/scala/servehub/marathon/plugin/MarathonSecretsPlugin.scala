@@ -1,4 +1,4 @@
-package servehub.marathon.secures.plugin
+package servehub.marathon.plugin
 
 import java.io.ByteArrayInputStream
 import java.nio.file.Files
@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory
 import play.api.libs.json._
 
 
-class MarathonSecreteVarsPlugin extends RunSpecTaskProcessor with PluginConfiguration {
+class MarathonSecretsPlugin extends RunSpecTaskProcessor with PluginConfiguration {
 
   private val log = LoggerFactory.getLogger(getClass.getName)
 
@@ -46,7 +46,7 @@ class MarathonSecreteVarsPlugin extends RunSpecTaskProcessor with PluginConfigur
         if (secret.target.forall(_.exists(_.app.exists(appId.startsWith)))) {
           val tryValue =
             if (secret.value.trim.take(4) equalsIgnoreCase "enc:") {
-              MarathonSecreteVarsPlugin.decrypt(privateKey, secret.value.trim.drop(4))
+              MarathonSecretsPlugin.decrypt(privateKey, secret.value.trim.drop(4))
             } else {
               Success(secret.value.trim)
             }
@@ -76,7 +76,7 @@ class MarathonSecreteVarsPlugin extends RunSpecTaskProcessor with PluginConfigur
 }
 
 
-object MarathonSecreteVarsPlugin {
+object MarathonSecretsPlugin {
   def decrypt(privateKey: String, value: String): Try[String] = Try {
     val privateFile = Files.createTempFile("msv", "secrets-key")
 

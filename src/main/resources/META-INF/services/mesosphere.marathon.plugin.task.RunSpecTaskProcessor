@@ -1,1 +1,1 @@
-servehub.marathon.secures.plugin.MarathonSecreteVarsPlugin
+servehub.marathon.plugin.MarathonSecretsPlugin
