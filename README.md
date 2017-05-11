@@ -49,7 +49,7 @@ curl -XPUT http://127.0.0.1:8500/v1/kv/services/secrets -d @secrets.json
   "plugins": {
     "secureVars": {
       "plugin": "mesosphere.marathon.plugin.task.RunSpecTaskProcessor",
-      "implementation": "servehub.marathon.secures.plugin.SecureVarsPlugin",
+      "implementation": "servehub.marathon.plugin.MarathonSecretsPlugin",
       "configuration": {
         "varPrefix": "SECRET_",
         "privateKey": "LS0tLS1C...",

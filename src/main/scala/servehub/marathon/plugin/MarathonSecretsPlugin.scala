@@ -30,7 +30,7 @@ class MarathonSecretsPlugin extends RunSpecTaskProcessor with PluginConfiguratio
   def initialize(marathonInfo: Map[String, Any], configuration: JsObject): Unit = {
     httpClient = Http((configuration \ "secretsUrl").as[String].trim)
     privateKey = (configuration \ "privateKey").as[String].trim
-    varPrefix  = (configuration \ "varPrefix").as[String].trim
+    varPrefix  = (configuration \ "varPrefix").asOpt[String].getOrElse("SECRET_").trim
   }
 
   def taskInfo(appSpec: ApplicationSpec, builder: TaskInfo.Builder): Unit = {
