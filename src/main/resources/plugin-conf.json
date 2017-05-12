@@ -1,6 +1,6 @@
 {
   "plugins": {
-    "secureVars": {
+    "secretVars": {
       "plugin": "mesosphere.marathon.plugin.task.RunSpecTaskProcessor",
       "implementation": "servehub.marathon.plugin.MarathonSecretsPlugin",
       "configuration": {
