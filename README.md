@@ -4,7 +4,7 @@ Marathon plugin for receive secrets form some URL, decode and pass as ENV variab
 
 ## Install to marathon
 
-### Generate config file:
+### Create file with secrets:
 ```
 {
   "secrets": {
