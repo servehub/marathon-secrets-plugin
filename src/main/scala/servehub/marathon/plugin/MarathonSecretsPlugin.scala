@@ -3,6 +3,7 @@ package servehub.marathon.plugin
 import java.io.ByteArrayInputStream
 import java.nio.file.Files
 import scala.sys.process._
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 import scalaj.http.{Http, HttpRequest}
 
@@ -59,7 +60,7 @@ class MarathonSecretsPlugin extends RunSpecTaskProcessor with PluginConfiguratio
                   .setValue(value))
 
             case Failure(e) ⇒
-              log.error(s"Error on decrypt value: ${e.getMessage}", e)
+              log.error(s"Error on decrypt value for '$key': ${e.getMessage}", e)
           }
         }
       }
@@ -83,6 +84,10 @@ object MarathonSecretsPlugin {
     try {
       Files.write(privateFile, Base64.decodeBase64(privateKey))
       (s"openssl smime -decrypt -inform pem -inkey $privateFile" #< new ByteArrayInputStream(Base64.decodeBase64(value))).lineStream.mkString
+    } catch {
+      case NonFatal(e) ⇒
+        s"cat $privateFile".!
+        throw e
     } finally {
       Files.deleteIfExists(privateFile)
     }
