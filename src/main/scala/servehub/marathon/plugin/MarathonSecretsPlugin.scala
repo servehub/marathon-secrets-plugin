@@ -84,10 +84,6 @@ object MarathonSecretsPlugin {
     try {
       Files.write(privateFile, Base64.decodeBase64(privateKey))
       (s"openssl smime -decrypt -inform pem -inkey $privateFile" #< new ByteArrayInputStream(Base64.decodeBase64(value))).lineStream.mkString
-    } catch {
-      case NonFatal(e) ⇒
-        s"cat $privateFile".!
-        throw e
     } finally {
       Files.deleteIfExists(privateFile)
     }
