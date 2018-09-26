@@ -2,7 +2,7 @@ organization := "servehub"
 
 name := "marathon-secrets-plugin"
 
-version := "1.2.2"
+version := "1.3.0"
 
 scalaVersion := "2.11.11"
 

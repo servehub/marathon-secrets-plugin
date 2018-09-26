@@ -9,13 +9,13 @@ Marathon plugin for receive secrets form some URL, decode and pass as ENV variab
 {
   "secrets": {
     "some.test.value": {
-      "value": "ENC:LS0tLS1CRUdJT...==",
+      "value": "LS0tLS1CRUdJT...==",
       "target": [
         { "app": "/group/app-v1.2.4" }
       ]
     },
-    "open.secret.pass": {
-      "value": "open-value-dev",
+    "other.secret.pass": {
+      "value": "LS0tLR3FS5TJT...==",
       "target": [
         { "app": "/group/" }
       ]

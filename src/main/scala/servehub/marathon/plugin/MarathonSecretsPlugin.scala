@@ -3,18 +3,17 @@ package servehub.marathon.plugin
 import java.io.ByteArrayInputStream
 import java.nio.file.Files
 import scala.sys.process._
-import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
-import scalaj.http.{Http, HttpRequest}
 
+import mesosphere.marathon.plugin.{ApplicationSpec, PodSpec}
 import mesosphere.marathon.plugin.plugin.PluginConfiguration
 import mesosphere.marathon.plugin.task._
-import mesosphere.marathon.plugin.{ApplicationSpec, PodSpec}
 import org.apache.commons.codec.binary.Base64
 import org.apache.mesos.Protos
 import org.apache.mesos.Protos.{ExecutorInfo, TaskGroupInfo, TaskInfo}
 import org.slf4j.LoggerFactory
 import play.api.libs.json._
+import scalaj.http.{Http, HttpRequest}
 
 
 class MarathonSecretsPlugin extends RunSpecTaskProcessor with PluginConfiguration {
@@ -43,24 +42,25 @@ class MarathonSecretsPlugin extends RunSpecTaskProcessor with PluginConfiguratio
     if (resp.is2xx) {
       val json = Json.parse(resp.body)
 
-      (json \ "secrets").as[Map[String, Secret]] foreach { case (key, secret) ⇒
-        if (secret.target.forall(_.exists(_.app.exists(appId.startsWith)))) {
-          val tryValue =
-            if (secret.value.trim.take(4) equalsIgnoreCase "enc:") {
-              MarathonSecretsPlugin.decrypt(privateKey, secret.value.trim.drop(4))
-            } else {
-              Success(secret.value.trim)
+      // accept consul's kv response (with recurse supported)
+      val jsonValues = json.asOpt[List[JsObject]]
+        .map(_ map { value ⇒
+          Json.parse(Base64.decodeBase64((value \ "Value").as[String]))
+        }).getOrElse(List(json))
+
+      jsonValues foreach { secrets ⇒
+        (secrets \ "secrets").as[Map[String, Secret]] foreach { case (key, secret) ⇒
+          if (secret.target.forall(_.exists(_.app.exists(appId.startsWith)))) {
+            MarathonSecretsPlugin.decrypt(privateKey, secret.value.trim.stripPrefix("ENC:")) match {
+              case Success(value) ⇒
+                envBuilder.addVariables(
+                  Protos.Environment.Variable.newBuilder()
+                    .setName((varPrefix + key.trim).toUpperCase.replaceAll("[^0-9A-Z]+", "_").toUpperCase)
+                    .setValue(value))
+
+              case Failure(e) ⇒
+                log.error(s"Error on decrypt value for '$key': ${e.getMessage}", e)
             }
-
-          tryValue match {
-            case Success(value) ⇒
-              envBuilder.addVariables(
-                Protos.Environment.Variable.newBuilder()
-                  .setName((varPrefix + key.trim).toUpperCase.replaceAll("[^0-9A-Z]+", "_").toUpperCase)
-                  .setValue(value))
-
-            case Failure(e) ⇒
-              log.error(s"Error on decrypt value for '$key': ${e.getMessage}", e)
           }
         }
       }
