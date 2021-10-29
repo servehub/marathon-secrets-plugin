@@ -1,1 +1,1 @@
-servehub.marathon.plugin.MarathonSecretsPlugin
+com.sbuslab.marathon.plugin.MarathonSecretsPlugin
