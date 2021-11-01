@@ -47,7 +47,7 @@ class MarathonSecretsPluginTest extends FunSuite {
 
     val builder = TaskInfo.newBuilder()
 
-    plugin.taskInfo(appSpec, builder)
+    // plugin.taskInfo(appSpec, builder)
   }
 
 }
