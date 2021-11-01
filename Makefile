@@ -1,5 +1,6 @@
 
 build:
+	rm -rf build/libs
 	gradle build
 
 release: build
