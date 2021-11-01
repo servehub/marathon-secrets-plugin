@@ -29,8 +29,8 @@ class MarathonSecretsPlugin extends RunSpecTaskProcessor with PluginConfiguratio
   Security.addProvider(new EdDSASecurityProvider)
 
   def taskInfo(appSpec: ApplicationSpec, builder: TaskInfo.Builder): Unit =
-    appSpec.env.get("SERVICE_ID") collect { case serviceId: EnvVarString ⇒
-      require(appSpec.id.toString.startsWith("/" + serviceId.value), throw new Exception("Incorrect $SERVICE_ID env variable!"))
+    appSpec.env.get("SERVICE_KEY") collect { case serviceId: EnvVarString ⇒
+      require(appSpec.id.toString.startsWith("/" + serviceId.value), throw new Exception("Incorrect $SERVICE_KEY env variable!"))
 
       val resp = (new URL(consulPath + "/private/" + serviceId.value + "?raw=true").openConnection()).asInstanceOf[HttpURLConnection]
 

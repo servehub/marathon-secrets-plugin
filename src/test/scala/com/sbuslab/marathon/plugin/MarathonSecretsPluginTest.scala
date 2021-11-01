@@ -22,7 +22,7 @@ class MarathonSecretsPluginTest extends FunSuite {
 
   val appSpec: ApplicationSpec = new ApplicationSpec {
     val env: Map[String, EnvVarValue] = Map(
-      "SERVICE_ID" → new EnvVarString { val value = "exchange/order-service-test" },
+      "SERVICE_KEY" → new EnvVarString { val value = "exchange/order-service-test" },
     )
 
     val id: PathId = new PathId {

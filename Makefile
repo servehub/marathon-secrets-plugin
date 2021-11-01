@@ -6,9 +6,12 @@ release: build
 	cp ./libs/*.jar build/libs/
 	cd ./build/libs/ && tar -czf marathon-secrets-plugin.tar.gz *.jar
 
-	github-release release \
-		--user copperexchange \
-		--repo custody-electron \
+	git tag v${version}
+	git push && git push --tags
+
+	-github-release release \
+		--user servehub \
+		--repo marathon-secrets-plugin \
 		--tag v${version}
 
 	github-release upload \
