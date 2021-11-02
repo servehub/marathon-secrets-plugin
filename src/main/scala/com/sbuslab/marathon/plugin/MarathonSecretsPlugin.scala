@@ -10,7 +10,7 @@ import javax.crypto.spec.{GCMParameterSpec, PBEKeySpec, SecretKeySpec}
 import mesosphere.marathon.plugin.{ApplicationSpec, EnvVarString, PodSpec}
 import mesosphere.marathon.plugin.plugin.PluginConfiguration
 import mesosphere.marathon.plugin.task._
-import net.i2p.crypto.eddsa.{EdDSAPrivateKey, EdDSASecurityProvider, Utils}
+import net.i2p.crypto.eddsa.{EdDSAPrivateKey, EdDSAPublicKey, EdDSASecurityProvider, Utils}
 import org.apache.mesos.Protos
 import org.apache.mesos.Protos.{ExecutorInfo, TaskGroupInfo, TaskInfo}
 import play.api.libs.json.{JsObject, Json}
@@ -39,7 +39,7 @@ class MarathonSecretsPlugin extends RunSpecTaskProcessor with PluginConfiguratio
           val generator = KeyPairGenerator.getInstance("EdDSA", "EdDSA")
           val pair = generator.generateKeyPair()
 
-          consulPut(consulPath + "/public/" + serviceId.value, Json.toJson(Map("publicKey" → Utils.bytesToHex(pair.getPublic.getEncoded))).toString())
+          consulPut(consulPath + "/public/" + serviceId.value, Json.toJson(Map("publicKey" → Utils.bytesToHex(pair.getPublic.asInstanceOf[EdDSAPublicKey].getAbyte))).toString())
 
           val privateSeed = Utils.bytesToHex(pair.getPrivate.asInstanceOf[EdDSAPrivateKey].getSeed)
 
