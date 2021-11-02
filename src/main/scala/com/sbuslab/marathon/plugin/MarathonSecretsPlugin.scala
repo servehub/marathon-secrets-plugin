@@ -10,7 +10,7 @@ import javax.crypto.spec.{GCMParameterSpec, PBEKeySpec, SecretKeySpec}
 import mesosphere.marathon.plugin.{ApplicationSpec, EnvVarString, PodSpec}
 import mesosphere.marathon.plugin.plugin.PluginConfiguration
 import mesosphere.marathon.plugin.task._
-import net.i2p.crypto.eddsa.{EdDSASecurityProvider, Utils}
+import net.i2p.crypto.eddsa.{EdDSAPrivateKey, EdDSASecurityProvider, Utils}
 import org.apache.mesos.Protos
 import org.apache.mesos.Protos.{ExecutorInfo, TaskGroupInfo, TaskInfo}
 import play.api.libs.json.{JsObject, Json}
@@ -41,11 +41,11 @@ class MarathonSecretsPlugin extends RunSpecTaskProcessor with PluginConfiguratio
 
           consulPut(consulPath + "/public/" + serviceId.value, Json.toJson(Map("publicKey" → Utils.bytesToHex(pair.getPublic.getEncoded))).toString())
 
-          val privateHex = Utils.bytesToHex(pair.getPrivate.getEncoded)
+          val privateSeed = Utils.bytesToHex(pair.getPrivate.asInstanceOf[EdDSAPrivateKey].getSeed)
 
-          consulPut(consulPath + "/private/" + serviceId.value, Json.toJson(Map("privateKey" → AesPbkdf2.encrypt(encryptKey, privateHex))).toString())
+          consulPut(consulPath + "/private/" + serviceId.value, Json.toJson(Map("privateKey" → AesPbkdf2.encrypt(encryptKey, privateSeed))).toString())
 
-          privateHex
+          privateSeed
         } else {
           AesPbkdf2.decrypt(encryptKey, (Json.parse(resp.getInputStream) \ "privateKey").as[String])
         }
