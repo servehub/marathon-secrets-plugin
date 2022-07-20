@@ -8,13 +8,15 @@ repositories {
 }
 
 dependencies {
-    implementation 'mesosphere.marathon:plugin-interface_2.12:1.6.325'
+    implementation 'org.scala-lang:scala-library:2.13.8'
 
-    compile 'com.typesafe.play:play-json_2.12:2.6.7'
-    compile 'net.i2p.crypto:eddsa:0.3.0'
+    implementation files('libs/mesosphere.marathon.plugin-interface-1.11.26.jar')
 
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.scalatest:scalatest_2.12:3.0.5'
+    implementation 'org.apache.mesos:mesos:1.11.0'
+
+    implementation 'com.typesafe.play:play-json_2.13:2.8.1'
+    implementation 'net.i2p.crypto:eddsa:0.3.0'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.scalatest:scalatest_2.13:3.0.9'
 }
-
-

@@ -4,7 +4,7 @@ build:
 	gradle build
 
 release: build
-	cp ./libs/*.jar build/libs/
+	cp ./libs/eddsa-0.3.0.jar build/libs/
 	cd ./build/libs/ && tar -czf marathon-secrets-plugin.tar.gz *.jar
 
 	git tag v${version}
