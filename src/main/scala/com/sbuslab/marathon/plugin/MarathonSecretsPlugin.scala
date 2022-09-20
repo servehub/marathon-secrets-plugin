@@ -20,12 +20,12 @@ class MarathonSecretsPlugin extends RunSpecTaskProcessor with PluginConfiguratio
 
   private var encryptKey: String = ""
   private var consulPath: String = ""
-  private var consulIdentityPath: String = ""
+  private var consulIdentityPath: Option[String] = Option.empty
 
   override def initialize(marathonInfo: Map[String, Any], configuration: JsObject): Unit = {
     encryptKey = (configuration \ "encryptKey").as[String].trim
     consulPath = (configuration \ "consulPath").as[String].trim
-    consulIdentityPath = (configuration \ "consulIdentityPath").as[String].trim
+    consulIdentityPath = (configuration \ "consulIdentityPath").asOpt[String].map(_.trim).filter(!_.isBlank)
   }
 
   Security.addProvider(new EdDSASecurityProvider)
@@ -51,10 +51,13 @@ class MarathonSecretsPlugin extends RunSpecTaskProcessor with PluginConfiguratio
     }
 
   private def createIdentityIfMissing(serviceId: EnvVarString) = {
-    val resp = (new URL(consulIdentityPath + "/" + serviceId.value + "?raw=true").openConnection()).asInstanceOf[HttpURLConnection]
+    consulIdentityPath.map {
+      path ⇒
+        val resp = (new URL(path + "/" + serviceId.value + "?raw=true").openConnection()).asInstanceOf[HttpURLConnection]
 
-    if (resp.getResponseCode == 404) {
-      consulPut(consulIdentityPath + "/" + serviceId.value, Json.toJson(List("service")).toString())
+        if (resp.getResponseCode == 404) {
+          consulPut(path + "/" + serviceId.value, Json.toJson(List("service")).toString())
+        }
     }
   }
 
