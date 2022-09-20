@@ -20,10 +20,12 @@ class MarathonSecretsPlugin extends RunSpecTaskProcessor with PluginConfiguratio
 
   private var encryptKey: String = ""
   private var consulPath: String = ""
+  private var consulIdentityPath: String = ""
 
   override def initialize(marathonInfo: Map[String, Any], configuration: JsObject): Unit = {
     encryptKey = (configuration \ "encryptKey").as[String].trim
     consulPath = (configuration \ "consulPath").as[String].trim
+    consulIdentityPath = (configuration \ "consulIdentityPath").as[String].trim
   }
 
   Security.addProvider(new EdDSASecurityProvider)
@@ -32,23 +34,9 @@ class MarathonSecretsPlugin extends RunSpecTaskProcessor with PluginConfiguratio
     appSpec.env.get("SERVICE_KEY") collect { case serviceId: EnvVarString ⇒
       require(appSpec.id.toString.startsWith("/" + serviceId.value), throw new Exception("Incorrect $SERVICE_KEY env variable!"))
 
-      val resp = (new URL(consulPath + "/private/" + serviceId.value + "?raw=true").openConnection()).asInstanceOf[HttpURLConnection]
+      createIdentityIfMissing(serviceId)
 
-      val privateKey =
-        if (resp.getResponseCode == 404) {
-          val generator = KeyPairGenerator.getInstance("EdDSA", "EdDSA")
-          val pair = generator.generateKeyPair()
-
-          consulPut(consulPath + "/public/" + serviceId.value, Json.toJson(Map("publicKey" → Utils.bytesToHex(pair.getPublic.asInstanceOf[EdDSAPublicKey].getAbyte))).toString())
-
-          val privateSeed = Utils.bytesToHex(pair.getPrivate.asInstanceOf[EdDSAPrivateKey].getSeed)
-
-          consulPut(consulPath + "/private/" + serviceId.value, Json.toJson(Map("privateKey" → AesPbkdf2.encrypt(encryptKey, privateSeed))).toString())
-
-          privateSeed
-        } else {
-          AesPbkdf2.decrypt(encryptKey, (Json.parse(resp.getInputStream) \ "privateKey").as[String])
-        }
+      val privateKey: String = getOrCreatePrivateKey(serviceId)
 
       val envBuilder = builder.getCommand.getEnvironment.toBuilder
 
@@ -61,6 +49,33 @@ class MarathonSecretsPlugin extends RunSpecTaskProcessor with PluginConfiguratio
         builder.getCommand.toBuilder
           .setEnvironment(envBuilder))
     }
+
+  private def createIdentityIfMissing(serviceId: EnvVarString) = {
+    val resp = (new URL(consulIdentityPath + "/" + serviceId.value + "?raw=true").openConnection()).asInstanceOf[HttpURLConnection]
+
+    if (resp.getResponseCode == 404) {
+      consulPut(consulIdentityPath + "/" + serviceId.value, Json.toJson(List("service")).toString())
+    }
+  }
+
+  private def getOrCreatePrivateKey(serviceId: EnvVarString) = {
+    val resp = (new URL(consulPath + "/private/" + serviceId.value + "?raw=true").openConnection()).asInstanceOf[HttpURLConnection]
+
+    if (resp.getResponseCode == 404) {
+      val generator = KeyPairGenerator.getInstance("EdDSA", "EdDSA")
+      val pair = generator.generateKeyPair()
+
+      consulPut(consulPath + "/public/" + serviceId.value, Json.toJson(Map("publicKey" → Utils.bytesToHex(pair.getPublic.asInstanceOf[EdDSAPublicKey].getAbyte))).toString())
+
+      val privateSeed = Utils.bytesToHex(pair.getPrivate.asInstanceOf[EdDSAPrivateKey].getSeed)
+
+      consulPut(consulPath + "/private/" + serviceId.value, Json.toJson(Map("privateKey" → AesPbkdf2.encrypt(encryptKey, privateSeed))).toString())
+
+      privateSeed
+    } else {
+      AesPbkdf2.decrypt(encryptKey, (Json.parse(resp.getInputStream) \ "privateKey").as[String])
+    }
+  }
 
   private def consulPut(url: String, body: String): Int = {
     val conn1 = (new URL(url).openConnection()).asInstanceOf[HttpURLConnection]
