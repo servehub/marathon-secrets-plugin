@@ -17,7 +17,7 @@ class MarathonSecretsPluginTest extends FunSuite {
     {
       "encryptKey": "aiHag0kaimaiSh5hiepheikieGhieKai2ui6uqu0aix9ewie9Laehahb8ohxahsh",
       "consulPath": "https://localhost:8500/v1/kv/services/keys",
-      "consulIdentitiesPath": "https://localhost:8500/v1/kv/sbus/rbac/identities"
+      "consulIdentityPath": "https://localhost:8500/v1/kv/sbus/rbac/identities"
     }
   """).as[JsObject]
 
