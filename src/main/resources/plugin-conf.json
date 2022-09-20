@@ -2,9 +2,10 @@
   "plugins": {
     "secretVars": {
       "plugin": "mesosphere.marathon.plugin.task.RunSpecTaskProcessor",
-      "implementation": "servehub.marathon.plugin.MarathonSecretsPlugin",
+      "implementation": "com.sbuslab.marathon.plugin.MarathonSecretsPlugin",
       "configuration": {
-        "privateKey": "LS0tLS1CRU...",
+        "encryptKey": "ccf...062",
+        "consulAddress": "http://consul.example.com:8500"
       }
     }
   }
