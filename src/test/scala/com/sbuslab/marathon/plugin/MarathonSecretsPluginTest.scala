@@ -16,8 +16,9 @@ class MarathonSecretsPluginTest extends FunSuite {
   private val config = Json.parse("""
     {
       "encryptKey": "aiHag0kaimaiSh5hiepheikieGhieKai2ui6uqu0aix9ewie9Laehahb8ohxahsh",
-      "consulPath": "https://localhost:8500/v1/kv/services/keys",
-      "consulIdentityPath": "https://localhost:8500/v1/kv/sbus/rbac/identities"
+      "consulAddress": "https://localhost:8500",
+      "keysPath": "/v1/kv/services/keys",
+      "identitiesPath": "/v1/kv/sbus/rbac/identities"
     }
   """).as[JsObject]
 

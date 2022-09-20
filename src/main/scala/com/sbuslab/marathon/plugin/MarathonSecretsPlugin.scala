@@ -19,13 +19,15 @@ import play.api.libs.json.{JsObject, Json}
 class MarathonSecretsPlugin extends RunSpecTaskProcessor with PluginConfiguration {
 
   private var encryptKey: String = ""
-  private var consulPath: String = ""
-  private var consulIdentityPath: Option[String] = Option.empty
+  private var consulAddress: String = ""
+  private var keysPath: String = ""
+  private var identitiesPath: String = ""
 
   override def initialize(marathonInfo: Map[String, Any], configuration: JsObject): Unit = {
     encryptKey = (configuration \ "encryptKey").as[String].trim
-    consulPath = (configuration \ "consulPath").as[String].trim
-    consulIdentityPath = (configuration \ "consulIdentityPath").asOpt[String].map(_.trim).filter(!_.isBlank)
+    consulAddress = (configuration \ "consulAddress").as[String].trim
+    keysPath = (configuration \ "keysPath").as[String].trim
+    identitiesPath = (configuration \ "identitiesPath").as[String].trim
   }
 
   Security.addProvider(new EdDSASecurityProvider)
@@ -51,28 +53,25 @@ class MarathonSecretsPlugin extends RunSpecTaskProcessor with PluginConfiguratio
     }
 
   private def createIdentityIfMissing(serviceId: EnvVarString) = {
-    consulIdentityPath.map {
-      path ⇒
-        val resp = (new URL(path + "/" + serviceId.value + "?raw=true").openConnection()).asInstanceOf[HttpURLConnection]
+      val resp = (new URL(consulAddress + identitiesPath + "/" + serviceId.value + "?raw=true").openConnection()).asInstanceOf[HttpURLConnection]
 
-        if (resp.getResponseCode == 404) {
-          consulPut(path + "/" + serviceId.value, Json.toJson(List("service")).toString())
-        }
-    }
+      if (resp.getResponseCode == 404) {
+        consulPut(consulAddress + identitiesPath + "/" + serviceId.value, Json.toJson(List("service")).toString())
+      }
   }
 
   private def getOrCreatePrivateKey(serviceId: EnvVarString) = {
-    val resp = (new URL(consulPath + "/private/" + serviceId.value + "?raw=true").openConnection()).asInstanceOf[HttpURLConnection]
+    val resp = (new URL(consulAddress + keysPath + "/private/" + serviceId.value + "?raw=true").openConnection()).asInstanceOf[HttpURLConnection]
 
     if (resp.getResponseCode == 404) {
       val generator = KeyPairGenerator.getInstance("EdDSA", "EdDSA")
       val pair = generator.generateKeyPair()
 
-      consulPut(consulPath + "/public/" + serviceId.value, Json.toJson(Map("publicKey" → Utils.bytesToHex(pair.getPublic.asInstanceOf[EdDSAPublicKey].getAbyte))).toString())
+      consulPut(consulAddress + keysPath + "/public/" + serviceId.value, Json.toJson(Map("publicKey" → Utils.bytesToHex(pair.getPublic.asInstanceOf[EdDSAPublicKey].getAbyte))).toString())
 
       val privateSeed = Utils.bytesToHex(pair.getPrivate.asInstanceOf[EdDSAPrivateKey].getSeed)
 
-      consulPut(consulPath + "/private/" + serviceId.value, Json.toJson(Map("privateKey" → AesPbkdf2.encrypt(encryptKey, privateSeed))).toString())
+      consulPut(consulAddress + keysPath + "/private/" + serviceId.value, Json.toJson(Map("privateKey" → AesPbkdf2.encrypt(encryptKey, privateSeed))).toString())
 
       privateSeed
     } else {
