@@ -56,7 +56,7 @@ class MarathonSecretsPlugin extends RunSpecTaskProcessor with PluginConfiguratio
     val resp = (new URL(consulAddress + identitiesPath + "/" + serviceId.value + "?raw=true").openConnection()).asInstanceOf[HttpURLConnection]
 
     if (resp.getResponseCode == 404) {
-      consulPut(consulAddress + identitiesPath + "/" + serviceId.value, Json.toJson(List("service")).toString())
+      consulPut(consulAddress + identitiesPath + "/" + serviceId.value, Json.toJson(Map("groups" → List("service"))).toString())
     }
   }
 
