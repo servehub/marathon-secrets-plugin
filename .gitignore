@@ -2,5 +2,4 @@
 .gradle
 build/
 target/
-project/project/
-project/target/
+project
