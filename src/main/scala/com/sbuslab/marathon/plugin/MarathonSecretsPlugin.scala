@@ -22,12 +22,14 @@ class MarathonSecretsPlugin extends RunSpecTaskProcessor with PluginConfiguratio
   private var consulAddress: String = ""
   private var keysPath: String = ""
   private var identitiesPath: String = ""
+  private var configPath: String = ""
 
   override def initialize(marathonInfo: Map[String, Any], configuration: JsObject): Unit = {
     encryptKey     = (configuration \ "encryptKey").as[String].trim
     consulAddress  = (configuration \ "consulAddress").as[String].trim
     keysPath       = (configuration \ "keysPath").asOpt[String].getOrElse("/v1/kv/services/keys").trim
     identitiesPath = (configuration \ "identitiesPath").asOpt[String].getOrElse("/v1/kv/services/sbus/identities").trim
+    configPath     = (configuration \ "configPath").asOpt[String].getOrElse("/v1/kv/services/sbus/config").trim
   }
 
   Security.addProvider(new EdDSASecurityProvider)
@@ -37,6 +39,8 @@ class MarathonSecretsPlugin extends RunSpecTaskProcessor with PluginConfiguratio
       require(appSpec.id.toString.startsWith("/" + serviceId.value), throw new Exception("Incorrect $SERVICE_KEY env variable!"))
 
       createIdentityIfMissing(serviceId)
+
+      createConfigIfMissing(serviceId)
 
       val privateKey: String = getOrCreatePrivateKey(serviceId)
 
@@ -57,6 +61,14 @@ class MarathonSecretsPlugin extends RunSpecTaskProcessor with PluginConfiguratio
 
     if (resp.getResponseCode == 404) {
       consulPut(consulAddress + identitiesPath + "/" + serviceId.value, Json.toJson(Map("groups" → List("service"))).toString())
+    }
+  }
+
+  private def createConfigIfMissing(serviceId: EnvVarString) = {
+    val resp = (new URL(consulAddress + configPath + "/" + serviceId.value + "?raw=true").openConnection()).asInstanceOf[HttpURLConnection]
+
+    if (resp.getResponseCode == 404) {
+      consulPut(consulAddress + configPath + "/" + serviceId.value, Json.toJson(Map()).toString())
     }
   }
 
